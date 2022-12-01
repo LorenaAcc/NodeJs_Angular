@@ -46,10 +46,10 @@ const login = async(req, res = response) => {
 
 }
 
-const googleSignIn = async(req, resp = response) => {
+const googleSignIn = async(req, res = response) => {
     const {id_token} = req.body;
 
-    req.json({
+    res.json({
         msg: 'Todo bien1',
         id_token
     })
