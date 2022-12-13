@@ -11,11 +11,11 @@ const dbConnection = async() => {
 			//useFindAndModify: false
 		});
 
-		console.log('Base de datos: '.cyan + 'online'.green);
+		console.log('Database: '.cyan + 'online'.green);
 
 	} catch (error) {
 		console.log(error);
-		throw new Error('Error al iniciar base de datos'.red);
+		throw new Error('Error starting database'.red);
 	}
 
 }

@@ -1,31 +1,32 @@
-const Role = require('../models/role');
-const Usuario = require('../models/usuario');
+const User = require('../models/user');
+const Recipe = require('../models/recipe');
 
-const esRolValido = async(rol = '') => {
-    const existeRol = await Role.findOne({rol});
-    if (!existeRol) {
-        throw new Error(`El rol ${rol} no está registrado en la BD`)
+const emailExists = async(email = '') => {
+    //Verificar si el correo existe
+    const _emailExists = await User.findOne({ email });
+    if(_emailExists) {
+        throw new Error(`The email '${email}' is already registered`);
     }
 }
 
-const emailExiste = async(correo = '') => {
-    //Verificar si el correo existe
-    const existeMail = await Usuario.findOne({ correo });
-    if(existeMail) {
-        throw new Error(`El correo '${correo}' ya está registrado`);
+const userExistsById = async(id) => {
+    //Verificar si el usuario existe
+    const userExists = await User.findById( id );
+    if(!userExists) {
+        throw new Error(`The id '${id}' does not exist`);
     }
 }
 
-const existeUsuarioPorId = async(id) => {
-    //Verificar si el correo existe
-    const existeUsuario = await Usuario.findById( id );
-    if(!existeUsuario) {
-        throw new Error(`El id '${id}' no existe`);
+const recipeExistsById = async(id) => {
+    //Verificar si la receta existe
+    const recipeExists = await Recipe.findById( id );
+    if(!recipeExists) {
+        throw new Error(`The id '${id}' does not exist`);
     }
 }
 
 module.exports = {
-    esRolValido,
-    emailExiste,
-    existeUsuarioPorId
+    emailExists,
+    userExistsById,
+    recipeExistsById
 }

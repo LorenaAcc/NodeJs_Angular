@@ -11,11 +11,13 @@ class Server{
         //Configuración del puerto
         this.port= process.env.PORT;
         //Define url de usuarios
-        this.usuariosPath = '/api/usuarios';
+        this.usersPath = '/api/users';
 
         this.authPath = '/api/auth';
+
+        this.recipesPath = '/api/recipes';
         //Conectar a base de datos
-        this.conectarDB();
+        this.conectDB();
 
         //Middlewares
         this.middlewares();
@@ -24,7 +26,7 @@ class Server{
         this.routes();
     }
 
-    async conectarDB() {
+    async conectDB() {
         await dbConnection();
     }
 
@@ -43,12 +45,13 @@ class Server{
 
     routes() {
         this.app.use(this.authPath, require('../routes/auth.route'));
-        this.app.use(this.usuariosPath, require('../routes/usuarios.route'));
+        this.app.use(this.usersPath, require('../routes/users.route'));
+        this.app.use(this.recipesPath, require('../routes/recipes.route'));
     }
 
     listen() {
         this.app.listen(this.port , () => {
-            console.log('Servidor corriendo en puerto: '.magenta, this.port.red);
+            console.log('Server running on port: '.magenta, this.port.red);
         })
     }
 

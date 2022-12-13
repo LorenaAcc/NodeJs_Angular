@@ -1,40 +1,36 @@
 const { response, json } = require('express');
 const bcryptjs = require('bcryptjs');
-const Usuario = require('../models/usuario');
-const { generarJWT } = require('../helpers/generar-jwt');
-const { googleVerify } = require('../helpers/google-verify');
+const User = require('../models/user');
+const { generateJWT } = require('../helpers/generate-jwt');
+const { usersPost } = require('./users.controller');
+//const { googleVerify } = require('../helpers/google-verify');
 
-const login = async(req, res = response) => {
-    const { correo, password } = req.body;
-
+const signIn = async(req, res = response) => {
+    const { email, password } = req.body;
+    console.log(email);
     try{
-
         //Verificar si el email existe
-        const usuario = await Usuario.findOne({correo});
-        if(!usuario) {
+        const validUser = await User.findOne({email});
+        
+        if(!validUser) {
             return res.status(400).json({
-                msg: 'Usuario / Password no son correctos - correo'
-            });
-        }
-        //Si el usuario está activo
-        if(!usuario.estado) {
-            return res.status(400).json({
-                msg: 'Usuario / Password no son correctos - estado: false'
+                msg: 'Wrong User / Password - email'
             });
         }
 
         //Verificar la contraseña
-        const validPassword = bcryptjs.compareSync(password, usuario.password);
+        const validPassword = bcryptjs.compareSync(password, validUser.password);
+
         if(!validPassword) {
             return res.status(400).json({
-                msg: 'Usuario / Password no son correctos - password'
+                msg: 'Wrong User / Password - password'
             });
         }
         //Generar el JWT
-        const token = await generarJWT(usuario.id);
+        const token = await generateJWT(validUser.id);
 
         res.json({
-            usuario,
+            validUser,
             token
         })
 
@@ -47,61 +43,49 @@ const login = async(req, res = response) => {
 
 }
 
-const googleSignIn = async(req, res = response) => {
-    
-    const {id_token} = req.body;
-    console.log(req.body);
+
+const signUp = async(req, res = response) => {
+    const { email, password, id } = req.body;
+
     try{
-
-        const {correo, nombre, img} = await googleVerify(id_token);
-
-        //console.log(googleUser);
-
-        let usuario = await Usuario.findOne({correo});
-
-        if(!usuario) {
-        //se crea usuario
+        //Verificar si el email existe
+        let user = await User.findOne({email});
+        console.log(email + 'Holaaaa signup')
+        if(!user) {
+            console.log(email + 'Holaaaa signup 2')
             const data = {
-                nombre,
-                correo,
-                password: ':P',
-                img,
-                google: true
-            };
+                    email: email,
+                    password: password,
+            };  
+        
+        user = new User(data);
+        //Encriptar contraseña
+        const salt = bcryptjs.genSaltSync();
+        user.password = bcryptjs.hashSync( password, salt );
 
-            usuario = new Usuario(data); 
-            await usuario.save();   
-        }
-
-        //si usuario en DB
-        if(!usuario.estado) {
-            return res.status(401).json({
-                msg: 'Hable con el Administrador. Usuario bloqueado'
-            });
-        }
+        //Guardar en DB
+        await user.save();  
+        } 
 
         //Generar el JWT
-        const token = await generarJWT(usuario.id);
+        const token = await generateJWT(id);
 
-
-        res.json({
-            usuario,
+            res.json({
+            user,
             token
         })
 
+
     } catch (error) {
-        res.status(400).json({
-                ok: false,
-                msg: 'Token de Google: no es válido/no se pudo verificar'
-            })
-
+        console.log(error)
+        res.status(500).json({
+            msg: 'Hable con el administrador'
+        })
     }
-
 
 }
 
-
 module.exports = {
-    login,
-    googleSignIn
+    signIn,
+    signUp
 }
