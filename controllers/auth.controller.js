@@ -2,8 +2,6 @@ const { response, json } = require('express');
 const bcryptjs = require('bcryptjs');
 const User = require('../models/user');
 const { generateJWT } = require('../helpers/generate-jwt');
-const { usersPost } = require('./users.controller');
-//const { googleVerify } = require('../helpers/google-verify');
 
 const signIn = async(req, res = response) => {
     const { email, password } = req.body;
@@ -30,14 +28,16 @@ const signIn = async(req, res = response) => {
         const token = await generateJWT(validUser.id);
 
         res.json({
-            validUser,
-            token
+            email: validUser.email,
+            localId: validUser.localId,
+            idToken: token,
+            expiresIn: validUser.expiresIn
         })
 
     } catch (error) {
         console.log(error)
         res.status(500).json({
-            msg: 'Hable con el administrador'
+            msg: 'Sign in denied. Talk to the administrator'
         })
     }
 
@@ -50,36 +50,42 @@ const signUp = async(req, res = response) => {
     try{
         //Verificar si el email existe
         let user = await User.findOne({email});
-        console.log(email + 'Holaaaa signup')
+
         if(!user) {
-            console.log(email + 'Holaaaa signup 2')
             const data = {
                     email: email,
                     password: password,
             };  
         
         user = new User(data);
+        console.log('nuevo usuario: ' + user.email);
+        
         //Encriptar contraseña
         const salt = bcryptjs.genSaltSync();
         user.password = bcryptjs.hashSync( password, salt );
 
         //Guardar en DB
         await user.save();  
-        } 
+        } else { console.log('Ya existe usuario')}
 
         //Generar el JWT
         const token = await generateJWT(id);
 
+        user.idToken=token;
+		await user.save();
+
             res.json({
-            user,
-            token
+                email: user.email,
+                localId: user.localId,
+                idToken: user.IdToken,
+                expiresIn: user.expiresIn
         })
 
 
     } catch (error) {
         console.log(error)
         res.status(500).json({
-            msg: 'Hable con el administrador'
+            msg: 'Sign up denied. Talk to the administrator'
         })
     }
 

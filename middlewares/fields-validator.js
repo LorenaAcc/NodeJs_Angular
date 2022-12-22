@@ -8,7 +8,7 @@ const fieldsValidate = (req, res, next) => {
     if(!errors.isEmpty()) {
         console.log('error en validar campos - middlewares');
         return res.status(400).json(errors);
-    }else{    console.log('OK en validar campos - middlewares');}
+    }else{ console.log('OK en validar campos - middlewares');}
 
     //si llega a este punto, sigue con el siguiente middleware
     next();

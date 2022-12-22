@@ -4,32 +4,49 @@ const Recipe = require('../models/recipe');
 
 const recipesGet = async (req = request, res = response) => {
 
-    const {limit = 5, from = 0} = req.query;
-    //const query = {estado: true};
+    try{
 
-    const [total, recipes] = await Promise.all([
-        Recipe.countDocuments().all(),
-        Recipe.findAll()
-        .skip(Number(from))
-        .limit(Number(limit))
-    ]);
+        const recipes = await Recipe.find();
+        
+        res.status(200).json(
+            recipes
+        );
 
-    res.json({
-        total,
-        recipes
-    });
+    } catch (error) {
+
+        console.log(error)
+        res.status(500).json({
+            msg: 'Could not get recipes. Talk to the administrator'
+        })
+
+    }
+
 }
 
 const recipesPut = async (req, res = response) => {
-    const {id} = req.params;
-    const { _id, ...rest } = req.body;
+    try {
+		const recipes = req.body;
 
-    // To Do validar contra base de datos
+		await Recipe.deleteMany({});
 
+		recipes.forEach(async aRecipe => {
+			const recipe = new Recipe(aRecipe);
+			await recipe.save();
+		});
 
-    const recipe = await User.findByIdAndUpdate(id, rest);
+		res.status(200).json({
+			msg: "Recipes updated/saved",
+            recipes
+		}); 
 
-    res.json(recipe);
+	} catch (error) {
+		console.log(error);
+
+		res.status(500).json({
+			msg: "Recipes could not be updated/saved. Talk to the administrator"
+		});
+	}
+
 }
 
 
